@@ -1,7 +1,7 @@
 {
   "name": "instagram-analytics",
   "version": "0.1.0",
-  "homepage": "https://min1627.github.io/instagram-analytics",
+  // "homepage": "https://min1627.github.io/instagram-analytics",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.14.0",
