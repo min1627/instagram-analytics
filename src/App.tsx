@@ -20,12 +20,12 @@ const makeInstagramDummy = (id: number) => {
   const hashtagCount = hashtags.split(',').length;
   const videoUploadCount = Math.floor(Math.random() * 100) + 10;
   const videoDesc = random([
-    'what’s one glow up tip you would share with others? ✨ #glowuptips #beautyhacks #beautyhabits #glowup',
+    'what\'s one glow up tip you would share with others? ✨#glowuptips #beautyhacks #beautyhabits #glowup',
     'This also is good for my fellow black peopleeee using a skin tone powder can prevent any ashy look t',
     '여러분의 뷰티 루틴은?',
-    '오늘도 열심히 촬영!',
-    '신상 화장품 리뷰',
-    '여행 브이로그',
+    '오늘의 심화 촬영!',
+    '상품 장착 리뷰',
+    '일상 브이로그',
     '운동 루틴 공유',
   ]);
   const reels = Array.from({ length: 5 }, (_, i) => ({
@@ -33,17 +33,17 @@ const makeInstagramDummy = (id: number) => {
     title: `틱톡 영상 ${i + 1}`,
   }));
   const profileImg = `https://picsum.photos/seed/profile${id}/80/80`;
-  // 비율 지표 계산용
+  // 비율 지표 계산
   const viewsPerFollower = playMedian / followers;
   const likesPerView = diggMedian / playMedian;
   const commentsPerView = commentMedian / playMedian;
-  // 추가 더미
+  // 추천 카테고리
   const aiSummary = random([
-    '예술, 전시, 문화 중심 컨텐츠',
+    '예술, 패션, 문화 중심 컨텐츠',
     '카페, 맛집, 일상 브이로그',
     '운동, 건강, 자기계발',
     '여행, 풍경, 자연',
-    '패션, 뷰티, 스타일',
+    '패션, 뷰티, 라이프스타일',
   ]);
   const lang = random(['ko', 'en', 'ja', 'es']);
   const bioLink = `https://linktr.ee/user${id}`;
@@ -55,13 +55,13 @@ const makeInstagramDummy = (id: number) => {
   return {
     id,
     unique_id: `user${id}`,
-    nickname: `닉네임${id}`,
+    nickname: `유저${id}`,
     bio: random([
-      '📍tokyo\nfrom 🇨🇦\n･:*ੈ♡‧₊˚:･\n💌 iamkoocat@gmail.com',
-      'Just a sexy girl in her own world ✨Welcome✨\n💌: Jaylayahj@gmail.com',
+      'tokyo\nfrom korea\n✨*ੈ♡₊˚:✧\niamkoocat@gmail.com',
+      'Just a sexy girl in her own world ✨Welcome✨\nJaylayahj@gmail.com',
       '뷰티 크리에이터',
       '여행을 사랑하는 인스타그래머',
-      '운동과 일상 공유',
+      '일상 영상 공유',
     ]),
     follower_count: followers,
     following_count: following,
@@ -93,14 +93,14 @@ const makeInstagramDummy = (id: number) => {
 };
 const DUMMY = Array.from({ length: 200 }, (_, i) => makeInstagramDummy(i + 1));
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
-// 필터 항목 정의
+// 필터 필드 정의
 const FILTER_FIELDS = [
-  { label: '구독자', value: 'follower_count' },
+  { label: '구독자수', value: 'follower_count' },
   { label: '조회수', value: 'play_count_avg' },
-  { label: '좋아요/조회수', value: 'digg_count_avg' },
-  { label: '댓글/조회수', value: 'comment_count_avg' },
+  { label: '좋아요수', value: 'digg_count_avg' },
+  { label: '댓글수', value: 'comment_count_avg' },
 ];
 const FILTER_OPS = [
   { label: '>', value: 'gt' },
@@ -111,7 +111,7 @@ const FILTER_OPS = [
 ];
 
 function App() {
-  // 검색/필터 상태
+  // 검색 필터 상태
   const [search, setSearch] = useState('');
   const [lang, setLang] = useState('');
   const [minViews, setMinViews] = useState('');
@@ -120,12 +120,12 @@ function App() {
   const [logic, setLogic] = useState<'AND' | 'OR'>('AND');
   const [page, setPage] = useState(1);
 
-  // 동적 필터 상태
+  // 고급 필터 상태
   const [filters, setFilters] = useState([
     { field: '', op: 'gt', value: '' }
   ]);
 
-  // 필터 추가/삭제 핸들러
+  // 필터 추가/제거 함수들
   const addFilter = () => setFilters([...filters, { field: '', op: 'gt', value: '' }]);
   const removeFilter = (idx: number) => setFilters(filters.filter((_, i) => i !== idx));
   const updateFilter = (idx: number, key: string, val: string) => setFilters(filters.map((f, i) => i === idx ? { ...f, [key]: val } : f));
@@ -134,24 +134,40 @@ function App() {
   const filtered = useMemo(() => {
     return DUMMY.filter(row => {
       const searchMatch =
-        row.unique_id.includes(search) ||
-        row.nickname.includes(search) ||
-        row.bio.includes(search);
-      const langMatch = lang ? row.nickname.includes(lang) : true; // Assuming nickname is the primary language indicator
+        row.unique_id.toLowerCase().includes(search.toLowerCase()) ||
+        row.nickname.toLowerCase().includes(search.toLowerCase()) ||
+        row.bio.toLowerCase().includes(search.toLowerCase());
+      const langMatch = lang ? row.lang === lang : true;
       const viewMatch = minViews ? row.play_count_avg >= +minViews : true;
       const followerMatch = minFollowers ? row.follower_count >= +minFollowers : true;
       const likeViewMatch = minLikeView ? row.digg_count_avg >= +minLikeView : true;
+      
+      // 고급 필터 적용
+      const advancedFilterMatch = filters.every(filter => {
+        if (!filter.field || !filter.value) return true;
+        const value = +filter.value;
+        const fieldValue = row[filter.field as keyof typeof row] as number;
+        
+        switch (filter.op) {
+          case 'gt': return fieldValue > value;
+          case 'lt': return fieldValue < value;
+          case 'gte': return fieldValue >= value;
+          case 'lte': return fieldValue <= value;
+          case 'eq': return fieldValue === value;
+          default: return true;
+        }
+      });
+      
       if (logic === 'AND') {
-        return searchMatch && langMatch && viewMatch && followerMatch && likeViewMatch;
+        return searchMatch && langMatch && viewMatch && followerMatch && likeViewMatch && advancedFilterMatch;
       } else {
-        return searchMatch || langMatch || viewMatch || followerMatch || likeViewMatch;
+        return searchMatch || langMatch || viewMatch || followerMatch || likeViewMatch || advancedFilterMatch;
       }
     });
-  }, [search, lang, minViews, minFollowers, minLikeView, logic]);
+  }, [search, lang, minViews, minFollowers, minLikeView, logic, filters]);
 
   // 페이지네이션
-  const total = filtered.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   // UI
@@ -181,11 +197,14 @@ function App() {
         <span style={{ fontWeight: 600 }}>언어:</span>
         <select value={lang} onChange={e => { setLang(e.target.value); setPage(1); }} style={{ minWidth: 80, marginRight: 8 }}>
           <option value="">전체</option>
-          {/* No language filter in TikTok data, so this will be empty */}
+          <option value="ko">한국어</option>
+          <option value="en">영어</option>
+          <option value="ja">일본어</option>
+          <option value="es">스페인어</option>
         </select>
         <span style={{ fontWeight: 600 }}>정렬:</span>
-        <select style={{ minWidth: 80, marginRight: 8 }}><option>No ▼</option></select>
-        <span style={{ fontWeight: 600 }}>검색:</span>
+        <select style={{ minWidth: 80, marginRight: 8 }}><option>No sort</option></select>
+        <span style={{ fontWeight: 600 }}>검색</span>
         <select style={{ minWidth: 80, marginRight: 8 }}><option>전체</option></select>
         <input placeholder="검색어 입력" style={{ width: 120, marginRight: 4 }} value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
         <button style={{ border: '1px solid #bdbdbd', borderRadius: 4, background: '#f8f8fa', padding: '4px 12px', fontWeight: 600, cursor: 'pointer' }}>검색</button>
@@ -200,25 +219,25 @@ function App() {
               <th>바이오</th>
               <th>팔로워</th>
               <th>팔로잉</th>
-              <th>하트수</th>
+              <th>하트</th>
               <th>프로필URL</th>
-              <th>조회수 중앙값</th>
-              <th>좋아요 중앙값</th>
+              <th>조회수중앙값</th>
+              <th>좋아요중앙값</th>
               <th>댓글 중앙값</th>
               <th>조회수/구독자</th>
               <th>좋아요/조회수</th>
               <th>댓글/조회수</th>
-              <th>조회수 표준편차</th>
-              <th>누적 게시물 수</th>
-              <th>누적 릴스 수</th>
-              <th>평균 업로드 주기</th>
-              <th>대표 영상 설명</th>
+              <th>조회수표준편차</th>
+              <th>총 게시물수</th>
+              <th>총 릴스 수</th>
+              <th>평균 업로드주기</th>
+              <th>최근 영상 설명</th>
               <th>최근 5개 영상 썸네일</th>
               <th>최근 5개 영상 주제 요약</th>
               <th>언어</th>
-              <th>바이오 링크</th>
-              <th>스레드 링크</th>
-              <th>모대시 링크</th>
+              <th>바이오링크</th>
+              <th>스레드링크</th>
+              <th>모대링크</th>
             </tr>
           </thead>
           <tbody>
@@ -250,14 +269,49 @@ function App() {
                 <td>{row.lang}</td>
                 <td><a href={row.bioLink} target="_blank" rel="noopener noreferrer">바이오</a></td>
                 <td><a href={row.threadLink} target="_blank" rel="noopener noreferrer">스레드</a></td>
-                <td><a href={row.modaeUrl} target="_blank" rel="noopener noreferrer">모대시</a></td>
+                <td><a href={row.modaeUrl} target="_blank" rel="noopener noreferrer">모대</a></td>
               </tr>
             ))}
           </tbody>
         </table>
         <div className="dashboard-pagination">
           <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>이전</button>
-          <span>{page} / {totalPages} (총 {total}개)</span>
+          
+          {/* 페이지 번호들 */}
+          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+            let pageNum;
+            if (totalPages <= 5) {
+              pageNum = i + 1;
+            } else if (page <= 3) {
+              pageNum = i + 1;
+            } else if (page >= totalPages - 2) {
+              pageNum = totalPages - 4 + i;
+            } else {
+              pageNum = page - 2 + i;
+            }
+            
+            return (
+              <button
+                key={pageNum}
+                onClick={() => setPage(pageNum)}
+                style={{
+                  background: page === pageNum ? '#6c63ff' : '#fff',
+                  color: page === pageNum ? '#fff' : '#6c63ff',
+                  border: '1px solid #6c63ff',
+                  borderRadius: '6px',
+                  padding: '7px 12px',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.18s'
+                }}
+              >
+                {pageNum}
+              </button>
+            );
+          })}
+          
+          <span>{page} / {totalPages} (총 {filtered.length}개)</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>다음</button>
         </div>
       </div>

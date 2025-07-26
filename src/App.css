@@ -37,14 +37,14 @@
   }
 }
 
-/* ?€?œë³´???„ì²´ ë°°ê²½ */
+/* ?ï¿½?ï¿½ë³´???ï¿½ì²´ ë°°ê²½ */
 .App {
   background: linear-gradient(120deg, #f7f7fa 0%, #e3e6f3 100%);
   min-height: 100vh;
   padding: 32px 0;
 }
 
-/* ?€?œë³´???€?´í? */
+/* ?ï¿½?ï¿½ë³´???ï¿½?ï¿½ï¿½? */
 .App h1 {
   font-size: 2.2rem;
   font-weight: 700;
@@ -53,7 +53,7 @@
   letter-spacing: -1px;
 }
 
-/* ê²€???„í„° ë°?*/
+/* ê²€???ï¿½í„° ï¿½?*/
 .dashboard-filters {
   margin-bottom: 20px;
   display: flex;
@@ -76,7 +76,7 @@
   outline: none;
 }
 
-/* ?Œì´ë¸?ì¹´ë“œ ?¤í???*/
+/* ?ï¿½ì´ï¿½?ì¹´ë“œ ?ï¿½ï¿½???*/
 .dashboard-table-card { max-height: calc(100vh - 200px); overflow-y: hidden;
   background: #fff;
   border-radius: 16px;
@@ -87,7 +87,7 @@
   padding-bottom: 12px;
 }
 
-/* ?Œì´ë¸?*/
+/* ?ï¿½ì´ï¿½?*/
 .dashboard-table {
   width: 100%;
   border-collapse: separate;
@@ -142,7 +142,7 @@
   font-weight: 500;
 }
 
-/* ?¸ë„¤??*/
+/* ?ï¿½ë„¤??*/
 .reels-thumb-img {
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
@@ -155,13 +155,14 @@
   box-shadow: 0 4px 16px #6c63ff55;
 }
 
-/* ?˜ì´ì§€?¤ì´??*/
+/* í˜ì´ì§€ë„¤ì´ì…˜ */
 .dashboard-pagination {
   padding: 16px 0 8px 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .dashboard-pagination button {
   background: #6c63ff;
@@ -174,15 +175,22 @@
   cursor: pointer;
   transition: background 0.18s, box-shadow 0.18s;
   box-shadow: 0 1px 4px #6c63ff22;
+  min-width: 40px;
 }
 .dashboard-pagination button:disabled {
   background: #bdbdbd;
   cursor: not-allowed;
+  box-shadow: none;
+}
+.dashboard-pagination button:hover:not(:disabled) {
+  background: #5a52d5;
+  box-shadow: 0 2px 8px #6c63ff44;
 }
 .dashboard-pagination span {
   font-size: 1.08rem;
   color: #2d2d4d;
   font-weight: 500;
+  margin: 0 8px;
 }
 
 /* ë°˜ì‘??*/
