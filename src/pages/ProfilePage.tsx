@@ -1,6 +1,16 @@
+/**
+ * @file ProfilePage.tsx
+ * @description 인스타그램 프로필 분석 대시보드 페이지.
+ * 필터링, 검색, 페이지네이션 기능이 포함된 데이터 테이블을 표시합니다.
+ */
+
 import React, { useState, useMemo } from 'react';
 import './ProfilePage.css';
 
+/**
+ * 언어 코드와 한글 이름을 매핑하는 객체
+ * @type {{ [key: string]: string }}
+ */
 const LANG_MAP: { [key: string]: string } = {
   ko: '한국어',
   en: '영어',
@@ -13,7 +23,11 @@ const LANG_MAP: { [key: string]: string } = {
 // random 함수 정의
 const random = (arr: any[]) => arr[Math.floor(Math.random() * arr.length)];
 
-// 인스타그램 더미 데이터 생성 함수
+/**
+ * 인스타그램 더미 데이터 생성 함수
+ * @param {number} id - 생성할 유저의 고유 ID
+ * @returns {object} 생성된 유저 프로필 더미 데이터 객체
+ */
 const makeInstagramDummy = (id: number) => {
   const followers = Math.floor(Math.random() * 500000) + 1000;
   const following = Math.floor(Math.random() * 1000);
@@ -103,55 +117,82 @@ const makeInstagramDummy = (id: number) => {
     email,
   };
 };
+
+// 200개의 더미 데이터 생성
 const DUMMY = Array.from({ length: 200 }, (_, i) => makeInstagramDummy(i + 1));
 
+// 페이지당 표시할 데이터 개수 기본값
 const PAGE_SIZE = 10;
 
-// 필터 필드 정의
+// 고급 필터에서 사용할 필드 목록
 const FILTER_FIELDS = [
   { label: '구독자수', value: 'follower_count' },
   { label: '조회수', value: 'play_count_avg' },
   { label: '좋아요수', value: 'digg_count_avg' },
   { label: '댓글수', value: 'comment_count_avg' },
 ];
+// 고급 필터에서 사용할 연산자 목록
 const FILTER_OPS = [
   { label: '>=', value: 'gte' },
   { label: '<=', value: 'lte' },
 ];
 
+/**
+ * ProfilePage 컴포넌트
+ * @description 인스타그램 계정 분석 대시보드의 메인 컴포넌트.
+ * 모든 상태 관리, 필터링 로직, UI 렌더링을 담당합니다.
+ */
 function ProfilePage() {
-  // 검색 필터 상태
-  const [search, setSearch] = useState('');
-  const [lang, setLang] = useState('');
-  const [minViews, setMinViews] = useState('');
-  const [minFollowers, setMinFollowers] = useState('');
-  const [minLikeView, setMinLikeView] = useState('');
-  const [logic, setLogic] = useState<'AND' | 'OR'>('AND');
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  // --- 상태 관리 (State Management) ---
 
-  // 고급 필터 상태
+  // 일반 검색어 상태
+  const [search, setSearch] = useState('');
+  // 언어 필터 상태
+  const [lang, setLang] = useState('');
+  // 현재 페이지 번호 상태
+  const [page, setPage] = useState(1);
+  // 페이지당 표시할 항목 수 상태
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+
+  // 고급 필터 목록 상태
   const [filters, setFilters] = useState([
     { field: '', op: 'gte', value: '', logic: 'AND' }
   ]);
 
-  // 실제 적용된 필터 상태 (검색 버튼 클릭 시 업데이트)
-  const [appliedFilters, setAppliedFilters] = useState([
-    { field: '', op: 'gte', value: '', logic: 'AND' }
-  ]);
+  // "검색" 버튼 클릭 시 실제 적용될 필터 상태들
+  const [appliedFilters, setAppliedFilters] = useState([...filters]);
+  const [appliedLang, setAppliedLang] = useState(lang);
+  const [appliedSearch, setAppliedSearch] = useState(search);
+  
+  // 테이블 행 확장/축소 상태
+  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
 
-  // 실제 적용된 언어 상태 (검색 버튼 클릭 시 업데이트)
-  const [appliedLang, setAppliedLang] = useState('');
+  // --- 이벤트 핸들러 (Event Handlers) ---
 
-  // 실제 적용된 검색어 상태 (검색 버튼 클릭 시 업데이트)
-  const [appliedSearch, setAppliedSearch] = useState('');
-
-  // 필터 추가/제거 함수들
+  /**
+   * 고급 필터 추가 핸들러
+   */
   const addFilter = () => setFilters([...filters, { field: '', op: 'gte', value: '', logic: 'AND' }]);
+
+  /**
+   * 고급 필터 제거 핸들러
+   * @param {number} idx - 제거할 필터의 인덱스
+   */
   const removeFilter = (idx: number) => setFilters(filters.filter((_, i) => i !== idx));
+
+  /**
+   * 고급 필터 업데이트 핸들러
+   * @param {number} idx - 업데이트할 필터의 인덱스
+   * @param {string} key - 업데이트할 필드의 키 (field, op, value, logic)
+   * @param {string} val - 새로운 값
+   */
   const updateFilter = (idx: number, key: string, val: string) => setFilters(filters.map((f, i) => i === idx ? { ...f, [key]: val } : f));
 
-  // 검색 버튼 클릭 핸들러
+  /**
+   * "검색" 버튼 클릭 또는 Enter 키 입력 핸들러
+   * 현재 필터 설정들을 'applied' 상태로 복사하여 실제 필터링을 트리거합니다.
+   * 페이지는 1로 초기화됩니다.
+   */
   const handleSearch = () => {
     setAppliedFilters([...filters]);
     setAppliedLang(lang);
@@ -159,15 +200,21 @@ function ProfilePage() {
     setPage(1);
   };
 
+  /**
+   * 키보드 입력 핸들러 (Enter 키 감지)
+   * @param {React.KeyboardEvent} e - 키보드 이벤트 객체
+   */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
   };
 
-  const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
-
-  // 행 클릭 핸들러
+  /**
+   * 테이블 행 클릭 핸들러
+   * 클릭된 행의 ID를 expandedRows Set에 추가하거나 제거하여 확장/축소 상태를 토글합니다.
+   * @param {number} rowId - 클릭된 행의 ID
+   */
   const handleRowClick = (rowId: number) => {
     const newExpanded = new Set(expandedRows);
     if (newExpanded.has(rowId)) {
@@ -178,52 +225,60 @@ function ProfilePage() {
     setExpandedRows(newExpanded);
   };
 
-  // 필터/검색 적용
-  const filtered = useMemo(() => {
-        return DUMMY.filter(row => {
-          const searchMatch =
-            row.unique_id.toLowerCase().includes(appliedSearch.toLowerCase()) ||
-            row.nickname.toLowerCase().includes(appliedSearch.toLowerCase()) ||
-            row.bio.toLowerCase().includes(appliedSearch.toLowerCase());
-          const langMatch = appliedLang ? row.lang === appliedLang : true;
-          // 고급 필터 적용
-          const advancedFilterMatch = appliedFilters.reduce((result, filter, index) => {
-            if (!filter.field || !filter.value) return result;
-            
-            const value = +filter.value;
-            const fieldValue = row[filter.field as keyof typeof row] as number;
-            
-            let filterResult = false;
-            switch (filter.op) {
-              case 'gte': filterResult = fieldValue >= value; break;
-              case 'lte': filterResult = fieldValue <= value; break;
-              default: filterResult = true;
-            }
-            
-            if (index === 0) return filterResult;
-            
-            // 이전 결과와 현재 필터 결과를 logic에 따라 결합
-            if (filter.logic === 'AND') {
-              return result && filterResult;
-            } else { // OR
-              return result || filterResult;
-            }
-          }, true);
-          
-          // 언어와 다른 조건들을 AND로 결합
-          return searchMatch && langMatch && advancedFilterMatch;
-        });
-              }, [appliedSearch, appliedLang, appliedFilters]);
+  // --- 데이터 필터링 및 페이지네이션 (Data Filtering & Pagination) ---
 
-  // 페이지네이션
+  /**
+   * 필터링된 데이터 목록 (useMemo 사용)
+   * appliedSearch, appliedLang, appliedFilters 상태가 변경될 때만 재계산하여 성능을 최적화합니다.
+   */
+  const filtered = useMemo(() => {
+    return DUMMY.filter(row => {
+      // 1. 일반 검색어 필터링 (ID, 닉네임, 바이오)
+      const searchMatch =
+        row.unique_id.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+        row.nickname.toLowerCase().includes(appliedSearch.toLowerCase()) ||
+        row.bio.toLowerCase().includes(appliedSearch.toLowerCase());
+      
+      // 2. 언어 필터링
+      const langMatch = appliedLang ? row.lang === appliedLang : true;
+      
+      // 3. 고급 필터링
+      const advancedFilterMatch = appliedFilters.reduce((result, filter, index) => {
+        if (!filter.field || !filter.value) return result;
+        
+        const value = +filter.value;
+        const fieldValue = row[filter.field as keyof typeof row] as number;
+        
+        let filterResult = false;
+        switch (filter.op) {
+          case 'gte': filterResult = fieldValue >= value; break;
+          case 'lte': filterResult = fieldValue <= value; break;
+          default: filterResult = true;
+        }
+        
+        if (index === 0) return filterResult;
+        
+        // 이전 결과와 현재 필터 결과를 logic에 따라 결합
+        if (filter.logic === 'AND') {
+          return result && filterResult;
+        } else { // OR
+          return result || filterResult;
+        }
+      }, true);
+      
+      // 언어와 다른 조건들을 AND로 결합
+      return searchMatch && langMatch && advancedFilterMatch;
+    });
+  }, [appliedSearch, appliedLang, appliedFilters]);
+
+  // 현재 페이지에 표시할 데이터 계산
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageData = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-
-
-  // UI
+  // --- UI 렌더링 (UI Rendering) ---
   return (
     <div className="profile-page-container">
+      {/* --- 필터 섹션 --- */}
       <div className="dashboard-filters" style={{ alignItems: 'center' }}>
         <span style={{ fontSize: '1.1rem', color: '#666', marginRight: 16, fontWeight: '600' }}>
           전체 {filtered.length}명
@@ -297,6 +352,8 @@ function ProfilePage() {
           검색
         </button>
       </div>
+
+      {/* --- 데이터 테이블 섹션 --- */}
       <div className="dashboard-table-card">
         <table className="dashboard-table" style={{ minWidth: 3100, tableLayout: 'fixed' }}>
             <thead>
@@ -392,7 +449,7 @@ function ProfilePage() {
           </table>
       </div>
       
-      {/* 페이지네이션 */}
+      {/* --- 페이지네이션 섹션 --- */}
       <div className="dashboard-pagination" style={{ 
         marginTop: '12px', 
         padding: '12px', 

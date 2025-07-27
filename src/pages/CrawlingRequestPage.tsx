@@ -1,41 +1,74 @@
+/**
+ * @file CrawlingRequestPage.tsx
+ * @description 크롤링 요청을 위한 UI 페이지.
+ * 사용자는 여러 모드(ID, 라이브러리, 팔로워) 중 하나를 선택하고
+ * 필요한 정보를 입력하여 크롤링을 요청할 수 있습니다.
+ */
 import React, { useState } from 'react';
 
+/**
+ * CrawlingRequestPage 컴포넌트
+ * @description 크롤링 요청 기능을 제공하는 페이지.
+ * - 'ID/라이브러리 기반'과 '시트 기반' 두 가지 주요 요청 섹션으로 구성됩니다.
+ * - 모드(mode) 상태에 따라 다른 입력 필드와 설명을 동적으로 표시합니다.
+ */
 const CrawlingRequestPage = () => {
+  // --- 상태 관리 (State Management) ---
+
+  // 'ID/라이브러리 기반' 요청의 현재 선택 모드 상태 (user, meta, follower)
   const [mode, setMode] = useState('user');
+  // 'ID/라이브러리 기반' 요청의 입력값 상태
   const [inputValue, setInputValue] = useState('');
+  // '시트 기반' 요청의 구글 시트 URL 상태
   const [sheetUrl, setSheetUrl] = useState('');
+  // 시트 제출 완료 여부 상태
   const [isSheetSubmitted, setIsSheetSubmitted] = useState(false);
 
+  // --- 이벤트 핸들러 (Event Handlers) ---
+
+  /**
+   * 'ID/라이브러리 기반' 크롤링 요청 버튼 클릭 핸들러
+   */
   const handleCrawlRequest = () => {
     alert(`모드: ${mode}\n입력값: ${inputValue}\n크롤링을 요청합니다.`);
-    // 실제 크롤링 요청 로직은 여기에 추가됩니다.
+    // TODO: 실제 크롤링 요청 API 호출 로직 구현 필요
   };
 
+  /**
+   * '시트 기반' 확인 버튼 클릭 핸들러
+   */
   const handleSheetSubmit = () => {
     if (sheetUrl) {
       setIsSheetSubmitted(true);
       alert(`시트 주소: ${sheetUrl}\n크롤링을 요청합니다.`);
+      // TODO: 실제 시트 기반 크롤링 요청 API 호출 로직 구현 필요
     }
   };
   
+  /**
+   * '시트 기반' 취소 버튼 클릭 핸들러
+   */
   const handleSheetCancel = () => {
     setIsSheetSubmitted(false);
     setSheetUrl('');
   };
 
+  // --- UI 렌더링 (UI Rendering) ---
   return (
     <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
       <h1>크롤링 요청</h1>
       
-      {/* 입력창 1 */}
+      {/* 섹션 1: ID/라이브러리 기반 요청 */}
       <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
         <h2 style={{ marginTop: 0 }}>ID/라이브러리 기반 요청</h2>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          {/* 크롤링 모드 선택 드롭다운 */}
           <select value={mode} onChange={(e) => setMode(e.target.value)} style={{ padding: '8px' }}>
             <option value="user">유저ID 입력</option>
             <option value="meta">메타 광고 라이브러리</option>
             <option value="follower">팔로워 크롤링</option>
           </select>
+          {/* ID 또는 검색어 입력 필드 */}
           <input
             type="text"
             value={inputValue}
@@ -47,6 +80,8 @@ const CrawlingRequestPage = () => {
             크롤링 요청
           </button>
         </div>
+
+        {/* 각 모드에 따른 설명 (조건부 렌더링) */}
         {mode === 'user' && (
           <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '10px' }}>
             * 유저ID 입력 모드 : 입력 받은 ID를 크롤링합니다. 여러 계정은 , 를 사용해 입력할 수 있습니다.
@@ -64,7 +99,7 @@ const CrawlingRequestPage = () => {
         )}
       </div>
 
-      {/* 입력창 2 */}
+      {/* 섹션 2: 시트 기반 요청 */}
       <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '20px' }}>
         <h2 style={{ marginTop: 0 }}>시트 기반 요청</h2>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -76,6 +111,7 @@ const CrawlingRequestPage = () => {
             style={{ padding: '8px', flexGrow: 1, background: isSheetSubmitted ? '#f0f0f0' : 'white' }}
             disabled={isSheetSubmitted}
           />
+          {/* 시트 제출 여부에 따른 버튼 (조건부 렌더링) */}
           {isSheetSubmitted ? (
             <button onClick={handleSheetCancel} style={{ padding: '8px 16px', background: '#f44336', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
               취소
