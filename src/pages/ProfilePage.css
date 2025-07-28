@@ -351,3 +351,15 @@ tr.row-expanded {
 td {
     vertical-align: middle;
 }
+
+/* 썸네일 호버 효과 */
+.reels-thumb-img {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.reels-thumb-img:hover {
+  transform: scale(3);
+  z-index: 1000;
+  box-shadow: 0 8px 24px #6c63ff55;
+  position: relative;
+}
