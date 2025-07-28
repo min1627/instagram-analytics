@@ -19,6 +19,8 @@ const CrawlingRequestPage = () => {
   const [mode, setMode] = useState('user');
   // 'ID/라이브러리 기반' 요청의 입력값 상태
   const [inputValue, setInputValue] = useState('');
+  // 메타 광고 라이브러리 모드에서 선택할 국가 상태
+  const [selectedCountry, setSelectedCountry] = useState('korea');
   // '시트 기반' 요청의 구글 시트 URL 상태
   const [sheetUrl, setSheetUrl] = useState('');
   // 시트 제출 완료 여부 상태
@@ -30,7 +32,11 @@ const CrawlingRequestPage = () => {
    * 'ID/라이브러리 기반' 크롤링 요청 버튼 클릭 핸들러
    */
   const handleCrawlRequest = () => {
-    alert(`모드: ${mode}\n입력값: ${inputValue}\n크롤링을 요청합니다.`);
+    if (mode === 'meta') {
+      alert(`모드: ${mode}\n입력값: ${inputValue}\n선택된 국가: ${selectedCountry}\n크롤링을 요청합니다.`);
+    } else {
+      alert(`모드: ${mode}\n입력값: ${inputValue}\n크롤링을 요청합니다.`);
+    }
     // TODO: 실제 크롤링 요청 API 호출 로직 구현 필요
   };
 
@@ -61,20 +67,44 @@ const CrawlingRequestPage = () => {
       {/* 섹션 1: ID/라이브러리 기반 요청 */}
       <div style={{ border: '1px solid #ccc', borderRadius: '8px', padding: '20px', marginBottom: '20px' }}>
         <h2 style={{ marginTop: 0 }}>ID/라이브러리 기반 요청</h2>
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
           {/* 크롤링 모드 선택 드롭다운 */}
           <select value={mode} onChange={(e) => setMode(e.target.value)} style={{ padding: '8px' }}>
             <option value="user">유저ID 입력</option>
             <option value="meta">메타 광고 라이브러리</option>
             <option value="follower">팔로워 크롤링</option>
           </select>
+          
+          {/* 메타 광고 라이브러리 모드일 때만 국가 선택 드롭다운 표시 */}
+          {mode === 'meta' && (
+            <select 
+              value={selectedCountry} 
+              onChange={(e) => setSelectedCountry(e.target.value)} 
+              style={{ padding: '8px' }}
+            >
+              <option value="korea">한국</option>
+              <option value="japan">일본</option>
+              <option value="usa">미국</option>
+              <option value="uk">영국</option>
+              <option value="mexico">멕시코</option>
+              <option value="kazakhstan">카자흐스탄</option>
+              <option value="uae">UAE</option>
+              <option value="india">인도</option>
+              <option value="indonesia">인도네시아</option>
+            </select>
+          )}
+          
           {/* ID 또는 검색어 입력 필드 */}
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="ID 또는 검색어 입력"
-            style={{ padding: '8px', flexGrow: 1 }}
+            placeholder={
+              mode === 'user' ? 'ID 입력 (celimax, @celimax, ...)' :
+              mode === 'meta' ? '검색어 입력 (광고, #광고, medicube, ...)' :
+              'ID 입력 (1개만, celimax 혹은 @celimax)'
+            }
+            style={{ padding: '8px', flexGrow: 1, minWidth: '200px' }}
           />
           <button onClick={handleCrawlRequest} style={{ padding: '8px 16px', background: '#1976d2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
             크롤링 요청

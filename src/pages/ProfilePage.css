@@ -227,12 +227,7 @@
   display: inline-block;
   margin: 0 2px;
 }
-.reels-thumb-img:hover {
-  transform: scale(3);
-  z-index: 1000;
-  box-shadow: 0 8px 24px #6c63ff55;
-  position: relative;
-}
+
 
 /* 텍스트 컬럼 스타일 */
 .dashboard-table td:nth-child(5),
@@ -308,15 +303,7 @@
   box-sizing: border-box;
 }
 
-.profile-img {
-  transition: transform 0.2s, box-shadow 0.2s;
-  cursor: pointer;
-}
-.profile-img:hover {
-  transform: scale(3);
-  z-index: 10;
-  box-shadow: 0 4px 16px #e1306c55;
-}
+
 
 /* 추가된 스타일 */
 .cell-content {

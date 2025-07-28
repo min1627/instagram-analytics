@@ -56,10 +56,10 @@ const makeInstagramDummy = (id: number) => {
     title: `인스타그램 영상 ${i + 1}`,
   }));
   const profileImg = `https://picsum.photos/seed/profile${id}/80/80`;
-  // 비율 지표 계산
-  const viewsPerFollower = playMedian / followers;
-  const likesPerView = diggMedian / playMedian;
-  const commentsPerView = commentMedian / playMedian;
+  // 비율 지표 계산 (퍼센트로 변환)
+  const viewsPerFollower = (playMedian / followers) * 100;
+  const likesPerView = (diggMedian / playMedian) * 100;
+  const commentsPerView = (commentMedian / playMedian) * 100;
   // 추천 카테고리
   const aiSummary = random([
     '국내 여행, 맛집 탐방, 일상 브이로그, 카페 투어, 도시 산책',
@@ -76,6 +76,19 @@ const makeInstagramDummy = (id: number) => {
   const avgUploadInterval = (Math.random() * 5 + 1).toFixed(1);
   const partnershipAd = Math.random() > 0.7 ? 'O' : '';
   const email = Math.random() > 0.5 ? `user${id}@example.com` : '';
+  
+  // 마지막 업데이트 날짜 생성 (최근 30일 내 랜덤)
+  const now = new Date();
+  const randomDaysAgo = Math.floor(Math.random() * 30);
+  const lastUpdate = new Date(now.getTime() - randomDaysAgo * 24 * 60 * 60 * 1000);
+  const lastUpdateStr = lastUpdate.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 
   return {
     id,
@@ -115,6 +128,7 @@ const makeInstagramDummy = (id: number) => {
     avgUploadInterval,
     partnershipAd,
     email,
+    lastUpdate: lastUpdateStr,
   };
 };
 
@@ -122,7 +136,7 @@ const makeInstagramDummy = (id: number) => {
 const DUMMY = Array.from({ length: 200 }, (_, i) => makeInstagramDummy(i + 1));
 
 // 페이지당 표시할 데이터 개수 기본값
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 100;
 
 // 고급 필터에서 사용할 필드 목록
 const FILTER_FIELDS = [
@@ -151,8 +165,8 @@ function ProfilePage() {
   const [lang, setLang] = useState('');
   // 현재 페이지 번호 상태
   const [page, setPage] = useState(1);
-  // 페이지당 표시할 항목 수 상태
-  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  // 페이지당 표시할 항목 수 상태 (고정값)
+  const pageSize = PAGE_SIZE;
 
   // 고급 필터 목록 상태
   const [filters, setFilters] = useState([
@@ -369,9 +383,9 @@ function ProfilePage() {
                 <th style={{ width: 140 }}>조회수중앙값</th>
                 <th style={{ width: 140 }}>좋아요중앙값</th>
                 <th style={{ width: 140 }}>댓글 중앙값</th>
-                <th style={{ width: 140 }}>조회수/구독자</th>
-                <th style={{ width: 140 }}>좋아요/조회수</th>
-                <th style={{ width: 140 }}>댓글/조회수</th>
+                <th style={{ width: 140 }}>조회수/구독자(%)</th>
+                <th style={{ width: 140 }}>좋아요/조회수(%)</th>
+                <th style={{ width: 140 }}>댓글/조회수(%)</th>
                 <th style={{ width: 120 }}>총 게시물수</th>
                 <th style={{ width: 120 }}>총 릴스 수</th>
                 <th style={{ width: 160 }}>평균 업로드주기(일)</th>
@@ -382,6 +396,7 @@ function ProfilePage() {
                 <th style={{ width: 150 }}>바이오링크</th>
                 <th style={{ width: 150 }}>이메일</th>
                 <th style={{ width: 100 }}>모대시링크</th>
+                <th style={{ width: 160 }}>마지막 업데이트</th>
               </tr>
             </thead>
             <tbody>
@@ -400,9 +415,9 @@ function ProfilePage() {
                   <td>{row.play_count_median.toLocaleString()}</td>
                   <td>{row.digg_count_median.toLocaleString()}</td>
                   <td>{row.comment_count_median.toLocaleString()}</td>
-                  <td>{row.viewsPerFollower.toFixed(2)}</td>
-                  <td>{row.likesPerView.toFixed(2)}</td>
-                  <td>{row.commentsPerView.toFixed(2)}</td>
+                  <td>{row.viewsPerFollower.toFixed(2)}%</td>
+                  <td>{row.likesPerView.toFixed(2)}%</td>
+                  <td>{row.commentsPerView.toFixed(2)}%</td>
                   <td>{row.totalPosts}</td>
                   <td>{row.totalReels}</td>
                   <td>{row.avgUploadInterval}</td>
@@ -443,6 +458,7 @@ function ProfilePage() {
                   <td><a href={row.bioLink} target="_blank" rel="noopener noreferrer">{row.bioLink}</a></td>
                   <td>{row.email}</td>
                   <td><a href={row.modaeUrl} target="_blank" rel="noopener noreferrer">링크</a></td>
+                  <td style={{ fontSize: '0.85rem', color: '#666' }}>{row.lastUpdate}</td>
                 </tr>
               ))}
             </tbody>
@@ -458,39 +474,10 @@ function ProfilePage() {
         border: '1px solid #e9ecef',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        justifyContent: 'center',
         flexWrap: 'wrap',
         gap: '8px'
       }}>
-          {/* 페이지 크기 선택 */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '8px'
-          }}>
-            <span style={{ fontSize: '0.9rem', color: '#666', fontWeight: '500' }}>
-              페이지당 표시:
-            </span>
-            <select 
-              value={pageSize} 
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1); // 페이지 크기 변경 시 첫 페이지로 이동
-              }}
-              style={{
-                padding: '6px 10px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '0.9rem',
-                backgroundColor: '#fff'
-              }}
-            >
-              <option value={10}>10개</option>
-              <option value={20}>20개</option>
-              <option value={50}>50개</option>
-              <option value={100}>100개</option>
-            </select>
-          </div>
           {/* 중앙: 페이지네이션 버튼들 */}
           <div style={{ 
             display: 'flex', 
@@ -569,7 +556,7 @@ function ProfilePage() {
             </button>
           </div>
           
-          {/* 오른쪽: 현재 페이지 정보 */}
+          {/* 현재 페이지 정보 */}
           <div style={{ 
             display: 'flex', 
             alignItems: 'center', 
