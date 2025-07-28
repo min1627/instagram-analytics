@@ -58,7 +58,7 @@ const makeInstagramDummy = (id: number) => {
   const profileImg = `https://picsum.photos/seed/profile${id}/80/80`;
   // 비율 지표 계산 (퍼센트로 변환)
   const viewsPerFollower = (playMedian / followers) * 100;
-  const likesPerView = (diggMedian / playMedian) * 100;
+  const commentsPerLike = (commentMedian / diggMedian) * 100;
   const commentsPerView = (commentMedian / playMedian) * 100;
   // 추천 카테고리
   const aiSummary = random([
@@ -72,7 +72,8 @@ const makeInstagramDummy = (id: number) => {
   const bioLink = `t.me/user${id}`;
   const modaeUrl = `https://modae.site/user${id}`;
   const totalPosts = Math.floor(Math.random() * 1000) + 10;
-  const totalReels = Math.floor(Math.random() * 500) + 5;
+  const totalReelsRaw = Math.floor(Math.random() * 500) + 5;
+  const totalReels = totalReelsRaw >= 32 ? '32개 이상' : totalReelsRaw.toString();
   const avgUploadInterval = (Math.random() * 5 + 1).toFixed(1);
   const partnershipAd = Math.random() > 0.7 ? 'O' : '';
   const email = Math.random() > 0.5 ? `user${id}@example.com` : '';
@@ -117,7 +118,7 @@ const makeInstagramDummy = (id: number) => {
     reels,
     profile_image: profileImg,
     viewsPerFollower,
-    likesPerView,
+    commentsPerLike,
     commentsPerView,
     aiSummary,
     lang,
@@ -383,14 +384,13 @@ function ProfilePage() {
                 <th style={{ width: 140 }}>조회수중앙값</th>
                 <th style={{ width: 140 }}>좋아요중앙값</th>
                 <th style={{ width: 140 }}>댓글 중앙값</th>
-                <th style={{ width: 140 }}>조회수/구독자(%)</th>
-                <th style={{ width: 140 }}>좋아요/조회수(%)</th>
+                <th style={{ width: 140 }}>조회수/팔로워(%)</th>
+                <th style={{ width: 140 }}>댓글/좋아요(%)</th>
                 <th style={{ width: 140 }}>댓글/조회수(%)</th>
                 <th style={{ width: 120 }}>총 게시물수</th>
                 <th style={{ width: 120 }}>총 릴스 수</th>
                 <th style={{ width: 160 }}>평균 업로드주기(일)</th>
                 <th style={{ width: 240 }}>최근 5개 영상 썸네일</th>
-                <th style={{ width: 400 }}>최근 5개 영상 주제 요약</th>
                 <th style={{ width: 120 }}>파트너쉽 광고</th>
                 <th style={{ width: 120 }}>하트</th>
                 <th style={{ width: 150 }}>바이오링크</th>
@@ -416,7 +416,7 @@ function ProfilePage() {
                   <td>{row.digg_count_median.toLocaleString()}</td>
                   <td>{row.comment_count_median.toLocaleString()}</td>
                   <td>{row.viewsPerFollower.toFixed(2)}%</td>
-                  <td>{row.likesPerView.toFixed(2)}%</td>
+                  <td>{row.commentsPerLike.toFixed(2)}%</td>
                   <td>{row.commentsPerView.toFixed(2)}%</td>
                   <td>{row.totalPosts}</td>
                   <td>{row.totalReels}</td>
@@ -445,14 +445,7 @@ function ProfilePage() {
                       />
                     ))}
                   </td>
-                  <td 
-                    style={{ 
-                      textAlign: 'left',
-                      padding: '8px 12px'
-                    }}
-                  >
-                    <div className="cell-content summary-content">{row.aiSummary}</div>
-                  </td>
+
                   <td style={{ textAlign: 'center' }}>{row.partnershipAd}</td>
                   <td style={{ textAlign: 'center' }}>{row.heart_count.toLocaleString()}</td>
                   <td><a href={row.bioLink} target="_blank" rel="noopener noreferrer">{row.bioLink}</a></td>
